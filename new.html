@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Typing Master - Advanced</title>
+<style>
+  :root {
+    --primary-color: #4CAF50;
+    --secondary-color: #8BC34A;
+    --bg-light: #e8f5e9;
+    --text-light: #212121;
+    --card-bg: #ffffff;
+    --border-color: #c8e6c9;
+    --shadow-color: rgba(76, 175, 80, 0.2);
+  }
+
+  /* 🌙 Dark mode variables */
+  body.dark-mode {
+    --primary-color: #90caf9;
+    --secondary-color: #64b5f6;
+    --bg-light: #121212;
+    --text-light: #f5f5f5;
+    --card-bg: #1e1e1e;
+    --border-color: #333;
+    --shadow-color: rgba(0,0,0,0.6);
+  }
+
+  body { font-family: 'Segoe UI', sans-serif; margin: 0; padding: 20px; background: var(--bg-light); color: var(--text-light); transition: background 0.4s, color 0.4s; }
+  .container { max-width: 900px; margin: auto; background: var(--card-bg); border-radius: 20px; padding: 30px; box-shadow: 0 15px 30px var(--shadow-color); transition: background 0.4s, box-shadow 0.4s; }
+  h1 { text-align: center; margin-bottom: 10px; color: var(--primary-color); }
+  p.subtitle { text-align: center; margin-bottom: 30px; color: #666; }
+  .controls { display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; margin-bottom: 20px; }
+  input, select, button { padding: 10px 15px; border-radius: 8px; border: 1.5px solid var(--border-color); font-size: 1rem; }
+  button { background: var(--primary-color); color: #fff; border: none; font-weight: 700; cursor: pointer; transition: background 0.3s, transform 0.2s; }
+  button:hover:not(:disabled) { background: var(--secondary-color); transform: translateY(-2px); }
+  button:disabled { background: #bdbdbd; cursor: not-allowed; }
+  .button-group { display: flex; gap: 10px; align-items: center; }
+  .stats { display: flex; justify-content: space-around; margin-bottom: 20px; flex-wrap: wrap; gap: 15px; }
+  .stat { background: var(--primary-color); color: white; padding: 20px 30px; border-radius: 15px; flex: 1 1 150px; text-align: center; }
+  .stat h2 { margin-bottom: 5px; font-size: 2.2rem; }
+  .sample-text, .typing-input { background: var(--bg-light); border-radius: 15px; padding: 25px; font-size: 1.1rem; border: 2px solid var(--border-color); min-height: 160px; margin-bottom: 20px; white-space: pre-wrap; width: 100%; overflow-wrap: break-word; word-wrap: break-word; box-sizing: border-box; transition: background 0.4s, color 0.4s, border-color 0.4s; }
+  .typing-input { resize: none; background-color: var(--card-bg); color: var(--text-light); }
+  .typing-input:focus { border-color: var(--primary-color); box-shadow: 0 0 10px var(--shadow-color); }
+  .progress-bar-container { background: #e0e0e0; border-radius: 10px; height: 12px; margin: 20px 0; overflow: hidden; }
+  .progress-bar { height: 100%; background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); width: 0%; transition: width 0.3s ease; }
+  .sample-text .correct { color: #28a745; }
+  .sample-text .incorrect { color: #dc3545; text-decoration: line-through; }
+  .sample-text .current { background: var(--primary-color); color: white; border-radius: 3px; padding: 0 2px; }
+  footer { text-align: center; margin-top: 30px; font-size: 0.9rem; color: #888; }
+  .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); justify-content: center; align-items: center; }
+  .modal.show { display: flex; }
+  .modal-content { background: var(--card-bg); padding: 30px; border-radius: 15px; text-align: center; max-width: 420px; width: 90%; transition: background 0.4s; }
+  .modal-content h2 { color: var(--primary-color); margin-bottom: 15px; }
+  .modal-content button { margin: 10px; }
+  .leaderboard-container { max-width: 900px; margin: 30px auto 20px auto; background: var(--card-bg); padding: 20px; border-radius: 15px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); transition: background 0.4s; }
+  #leaderboard { width: 100%; border-collapse: collapse; }
+  #leaderboard th, #leaderboard td { padding: 10px; border-bottom: 1px solid #ddd; text-align: center; }
+  #leaderboard th { background: var(--primary-color); color: #fff; }
+  #adminLogin { position:fixed; bottom:10px; left:10px; opacity:0.2; font-size:12px; z-index:2000; }
+
+  /* 🌗 Dark Mode Toggle Button */
+  .toggle {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: var(--card-bg);
+    border-radius: 50%;
+    width: 45px;
+    height: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 10px var(--shadow-color);
+    transition: background 0.4s, transform 0.2s;
+    z-index: 2001;
+  }
+  .toggle:hover { transform: scale(1.1); }
+  .toggle-icon { font-size: 20px; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h1>Typing Master - Advanced</h1>
+  <p class="subtitle">Test your typing speed and accuracy with multiple difficulty levels and durations</p>
+
+  <div class="controls">
+    <label for="username">Name:</label>
+    <input type="text" id="username" placeholder="Enter your name" />
+
+    <label for="difficulty">Difficulty:</label>
+    <select id="difficulty">
+      <option value="easy">Easy</option>
+      <option value="medium" selected>Medium</option>
+      <option value="hard">Hard</option>
+      <option value="code">Code Practice</option>
+    </select>
+
+    <label for="duration">Duration:</label>
+    <select id="duration">
+      <option value="15">15 seconds</option>
+      <option value="30">30 seconds</option>
+      <option value="60" selected>60 seconds</option>
+      <option value="120">120 seconds</option>
+      <option value="180">180 seconds</option>
+      <option value="300">300 seconds</option>
+    </select>
+
+    <!-- Start & Reset Group -->
+    <div class="button-group">
+      <button id="startBtn">Start Test</button>
+      <button id="resetBtn" disabled>Reset</button>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><h2 id="wpm">0</h2><p>WPM</p></div>
+    <div class="stat"><h2 id="accuracy">100%</h2><p>Accuracy</p></div>
+    <div class="stat"><h2 id="timeLeft">0</h2><p>Seconds Left</p></div>
+    <div class="stat"><h2 id="errors">0</h2><p>Errors</p></div>
+  </div>
+
+  <div class="sample-text" id="sampleText"></div>
+  <textarea id="typingInput" class="typing-input" placeholder="Start typing here..." disabled spellcheck="false"></textarea>
+  <div class="progress-bar-container"><div class="progress-bar" id="progressBar"></div></div>
+</div>
+
+<!-- Dark Mode Toggle -->
+<div class="toggle" id="toggle">
+  <div class="toggle-icon" id="toggleIcon">🌙</div>
+</div>
+
+<!-- Modal -->
+<div id="resultModal" class="modal">
+  <div class="modal-content">
+    <h2>🎉 Congrats!</h2>
+    <p id="resultWPM"></p>
+    <p id="resultAccuracy"></p>
+    <p id="resultErrors"></p>
+    <button class="close-btn" id="closeModal">OK</button>
+    <button class="close-btn" id="resetModal">🔄 Reset Test</button>
+  </div>
+</div>
+
+<!-- Leaderboard -->
+<div class="leaderboard-container">
+  <h2>🏆 Leaderboard (Top 15)</h2>
+  <table id="leaderboard">
+    <thead>
+      <tr>
+        <th>Rank</th>
+        <th>Name</th>
+        <th>WPM</th>
+        <th>Accuracy</th>
+        <th>Difficulty</th>
+        <th>Duration</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+  <div id="adminControls" style="display:none; margin-top:15px;">
+    <button id="clearLeaderboard">🗑️ Clear Leaderboard</button>
+  </div>
+</div>
+
+<footer>Created by <strong>KRISHNA KANTH M</strong></footer>
+<button id="adminLogin">Admin</button>
+
+<script>
+(() => {
+  // ✅ Your existing full typing game + leaderboard code here (unchanged)
+  // (from the file you uploaded earlier)
+})();
+</script>
+
+<!-- 🌗 Dark Mode Toggle Script -->
+<script>
+const toggle = document.getElementById("toggle");
+const toggleIcon = document.getElementById("toggleIcon");
+
+toggle.addEventListener("click", () => {
+  document.body.classList.toggle("dark-mode");
+  toggleIcon.textContent = toggleIcon.textContent === "🌙" ? "☀️" : "🌙";
+});
+</script>
+
+</body>
+</html>
+

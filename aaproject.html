@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Typing Master - Advanced</title>
+<style>
+  :root {
+    --primary-color: #4CAF50;
+    --secondary-color: #8BC34A;
+    --bg-light: #e8f5e9;
+    --text-light: #212121;
+    --card-bg: #ffffff;
+    --border-color: #c8e6c9;
+    --shadow-color: rgba(76, 175, 80, 0.2);
+  }
+  body { font-family: 'Segoe UI', sans-serif; margin: 0; padding: 20px; background: var(--bg-light); color: var(--text-light); }
+  .container { max-width: 900px; margin: auto; background: var(--card-bg); border-radius: 20px; padding: 30px; box-shadow: 0 15px 30px var(--shadow-color); }
+  h1 { text-align: center; margin-bottom: 10px; color: var(--primary-color); }
+  p.subtitle { text-align: center; margin-bottom: 30px; color: #666; }
+  .controls { display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; margin-bottom: 20px; }
+  select, button { padding: 10px 15px; border-radius: 8px; border: 1.5px solid var(--border-color); font-size: 1rem; }
+  button { background: var(--primary-color); color: #fff; border: none; font-weight: 700; cursor: pointer; transition: background 0.3s, transform 0.2s; }
+  button:hover:not(:disabled) { background: var(--secondary-color); transform: translateY(-2px); }
+  button:disabled { background: #bdbdbd; cursor: not-allowed; }
+  .stats { display: flex; justify-content: space-around; margin-bottom: 20px; flex-wrap: wrap; gap: 15px; }
+  .stat { background: var(--primary-color); color: white; padding: 20px 30px; border-radius: 15px; flex: 1 1 150px; text-align: center; }
+  .stat h2 { margin-bottom: 5px; font-size: 2.2rem; }
+  .sample-text, .typing-input { background: var(--bg-light); border-radius: 15px; padding: 25px; font-size: 1.1rem; border: 2px solid var(--border-color); min-height: 160px; margin-bottom: 20px; white-space: pre-wrap; width: 100%; }
+  .typing-input { resize: none; background-color: var(--card-bg); color: var(--text-light); }
+  .typing-input:focus { border-color: var(--primary-color); box-shadow: 0 0 10px var(--shadow-color); }
+  .progress-bar-container { background: #e0e0e0; border-radius: 10px; height: 12px; margin: 20px 0; overflow: hidden; }
+  .progress-bar { height: 100%; background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); width: 0%; transition: width 0.3s ease; }
+  .sample-text .correct { color: #28a745; }
+  .sample-text .incorrect { color: #dc3545; text-decoration: line-through; }
+  .sample-text .current { background: var(--primary-color); color: white; border-radius: 3px; padding: 0 2px; }
+  footer { text-align: center; margin-top: 30px; font-size: 0.9rem; color: #888; }
+  .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); justify-content: center; align-items: center; }
+  .modal.show { display: flex; }
+  .modal-content { background: var(--card-bg); padding: 30px; border-radius: 15px; text-align: center; max-width: 420px; width: 90%; }
+  .modal-content h2 { color: var(--primary-color); margin-bottom: 15px; }
+  .modal-content button { margin: 10px; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h1>Typing Master - Advanced</h1>
+  <p class="subtitle">Test your typing speed and accuracy with multiple difficulty levels and durations</p>
+
+  <div class="controls">
+    <label for="difficulty">Difficulty:</label>
+    <select id="difficulty">
+      <option value="easy">Easy</option>
+      <option value="medium" selected>Medium</option>
+      <option value="hard">Hard</option>
+      <option value="code">Code Practice</option>
+    </select>
+
+    <label for="duration">Duration:</label>
+    <select id="duration">
+      <option value="15">15 seconds</option>
+      <option value="30">30 seconds</option>
+      <option value="60" selected>60 seconds</option>
+      <option value="120">120 seconds</option>
+      <option value="180">180 seconds</option>
+      <option value="300">300 seconds</option>
+    </select>
+
+    <button id="startBtn">Start Test</button>
+    <button id="resetBtn" disabled>Reset</button>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><h2 id="wpm">0</h2><p>WPM</p></div>
+    <div class="stat"><h2 id="accuracy">100%</h2><p>Accuracy</p></div>
+    <div class="stat"><h2 id="timeLeft">0</h2><p>Seconds Left</p></div>
+    <div class="stat"><h2 id="errors">0</h2><p>Errors</p></div>
+  </div>
+
+  <div class="sample-text" id="sampleText"></div>
+  <textarea id="typingInput" class="typing-input" placeholder="Start typing here..." disabled spellcheck="false"></textarea>
+  <div class="progress-bar-container"><div class="progress-bar" id="progressBar"></div></div>
+</div>
+
+<!-- Modal -->
+<div id="resultModal" class="modal">
+  <div class="modal-content">
+    <h2>🎉 Congrats!</h2>
+    <p id="resultWPM"></p>
+    <p id="resultAccuracy"></p>
+    <p id="resultErrors"></p>
+    <button class="close-btn" id="closeModal">OK</button>
+    <button class="close-btn" id="resetModal">🔄 Reset Test</button>
+  </div>
+</div>
+
+<footer>Created by <strong>KRISHNA KANTH M</strong></footer>
+
+<script>
+(() => {
+  const sampleTexts = {
+    easy: [
+      "The quick brown fox jumps over the lazy dog near the river bank.",
+      "Typing every single day will make you faster and more accurate.",
+      "She sells seashells by the seashore and collects pretty white stones.",
+      "A journey of a thousand miles begins with a single confident step.",
+      "Practice typing without looking at the keyboard to improve muscle memory.",
+      "Jack quickly amazed his friends by jumping gracefully over the tall fence.",
+      "Good habits formed early in life will guide you towards great success.",
+      "Time flies quickly when you are enjoying the little things around you.",
+      "An apple a day keeps the doctor away, according to an old saying.",
+      "Hard work and patience together create opportunities for lasting achievements."
+    ],
+    medium: [
+      "Programming is the process of creating instructions that tell a computer how to work.",
+      "Reading books regularly helps to expand your vocabulary and develop your imagination.",
+      "Typing speed improves with accuracy, so focus on fewer mistakes before chasing speed.",
+      "Technology has changed the way we communicate, learn, and perform our daily work.",
+      "The internet connects people instantly, no matter where they live around the world.",
+      "Consistency always beats intensity when it comes to learning new valuable skills.",
+      "Happiness is not ready made, but comes from positive choices and daily actions.",
+      "Failure is an opportunity to begin again, this time with more intelligence.",
+      "Discipline is the bridge that connects your goals with your accomplishments in life.",
+      "Typing without looking at the keyboard is a powerful lifelong communication skill."
+    ],
+    hard: [
+      "In computer science, algorithms are well defined sets of steps designed to solve problems efficiently.",
+      "Artificial intelligence and machine learning are transforming industries by enabling automation and prediction.",
+      "Consistency in daily typing practice is essential for building both speed and long term accuracy.",
+      "Cybersecurity is important as personal and financial data is increasingly stored on online platforms.",
+      "Edge computing reduces latency by processing data closer to where it is generated in real time.",
+      "Data science blends statistics, coding, and domain knowledge to extract meaning from large datasets.",
+      "Natural language processing allows computers to interpret, analyze, and even generate human language.",
+      "Quantum computing may eventually revolutionize fields like cryptography and molecular level simulations.",
+      "Distributed systems are resilient because they reduce the risks of single points of failure.",
+      "Typing under strict time limits with minimal mistakes builds confidence in real applications."
+    ],
+    code: [
+      "function sumArray(arr) { return arr.reduce((acc, val) => acc + val, 0); }",
+      "for (let i = 1; i <= 5; i++) { console.log('Number is: ' + i); }",
+      "if (user.isLoggedIn) { showDashboard(); } else { requestLogin(); }",
+      "def factorial(n): return 1 if n == 0 else n * factorial(n - 1)",
+      "const numbers = [1, 2, 3, 4, 5]; numbers.forEach(n => console.log(n * 2));",
+      "while (count < 10): print('Current count is', count); count += 1",
+      "public static void main(String[] args) { System.out.println('Hello Java'); }",
+      "try { riskyFunction(); } catch(e) { console.error('Error:', e.message); }",
+      "import math\nprint('Square root of 25 is', math.sqrt(25))",
+      "class Dog { constructor(name) { this.name = name; } bark() { return 'woof'; } }"
+    ]
+  };
+
+  const difficultySelect = document.getElementById('difficulty');
+  const durationSelect = document.getElementById('duration');
+  const startBtn = document.getElementById('startBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const sampleTextEl = document.getElementById('sampleText');
+  const typingInput = document.getElementById('typingInput');
+  const wpmEl = document.getElementById('wpm');
+  const accuracyEl = document.getElementById('accuracy');
+  const timeLeftEl = document.getElementById('timeLeft');
+  const errorsEl = document.getElementById('errors');
+  const progressBar = document.getElementById('progressBar');
+  const resultModal = document.getElementById("resultModal");
+  const resultWPM = document.getElementById("resultWPM");
+  const resultAccuracy = document.getElementById("resultAccuracy");
+  const resultErrors = document.getElementById("resultErrors");
+  const closeModal = document.getElementById("closeModal");
+  const resetModal = document.getElementById("resetModal");
+
+  let testText = '';
+  let timer = null, timeLeft = 0, isTestRunning = false;
+  let errors = 0, typedCharacters = 0, correctCharacters = 0;
+
+  function getRandomText(difficulty) {
+    const texts = sampleTexts[difficulty];
+
+    if (difficulty === "hard") {
+      const duration = parseInt(durationSelect.value);
+      if (duration > 240) {
+        let shuffled = texts.sort(() => 0.5 - Math.random());
+        return shuffled.slice(0, 3).join(" ");
+      } else {
+        return texts[Math.floor(Math.random() * texts.length)];
+      }
+    }
+
+    return texts[Math.floor(Math.random() * texts.length)];
+  }
+
+  function displaySampleText() {
+    sampleTextEl.innerHTML = '';
+    testText.split('').forEach(char => {
+      const span = document.createElement('span');
+      span.textContent = char;
+      sampleTextEl.appendChild(span);
+    });
+    if (sampleTextEl.children.length > 0) sampleTextEl.children[0].classList.add('current');
+  }
+
+  function hideModal() { resultModal.classList.remove('show'); }
+  function showModal() { resultModal.classList.add('show'); }
+
+  function initializeTest() {
+    if (timer) clearInterval(timer);
+    isTestRunning = false;
+    errors = 0; typedCharacters = 0; correctCharacters = 0;
+    timeLeft = parseInt(durationSelect.value);
+    testText = getRandomText(difficultySelect.value);
+    displaySampleText();
+    typingInput.value = '';
+    typingInput.disabled = true;
+    startBtn.disabled = false;
+    resetBtn.disabled = true;
+    wpmEl.textContent = '0';
+    accuracyEl.textContent = '100%';
+    timeLeftEl.textContent = timeLeft;
+    errorsEl.textContent = '0';
+    progressBar.style.width = '0%';
+    hideModal();
+  }
+
+  function startTest() {
+    if (isTestRunning) return;
+    isTestRunning = true;
+    typingInput.value = "";
+    typingInput.disabled = false;
+    typingInput.focus();
+    startBtn.disabled = true;
+    resetBtn.disabled = false;
+    const startTime = new Date().getTime();
+    timer = setInterval(() => {
+      const elapsed = (new Date().getTime() - startTime) / 1000;
+      const totalDuration = parseInt(durationSelect.value);
+      timeLeft = totalDuration - Math.floor(elapsed);
+      timeLeftEl.textContent = Math.max(0, timeLeft);
+      progressBar.style.width = `${Math.min(100, (elapsed / totalDuration) * 100)}%`;
+      if (timeLeft <= 0) endTest();
+      else updateStats();
+    }, 1000);
+  }
+
+  function endTest() {
+    if (!isTestRunning) return;
+    if (timer) clearInterval(timer);
+    timer = null;
+    isTestRunning = false;
+    typingInput.disabled = true;
+    startBtn.disabled = false;
+    resetBtn.disabled = false;
+    timeLeftEl.textContent = '0';
+    progressBar.style.width = '100%';
+    updateStats();
+    resultWPM.textContent = `WPM: ${wpmEl.textContent}`;
+    resultAccuracy.textContent = `Accuracy: ${accuracyEl.textContent}`;
+    resultErrors.textContent = `Errors: ${errorsEl.textContent}`;
+    showModal();
+  }
+
+  function updateStats() {
+    const typedText = typingInput.value;
+    const totalCharacters = typedText.length;
+    let currentErrors = 0, currentCorrectCharacters = 0;
+    const sampleSpans = sampleTextEl.querySelectorAll('span');
+    sampleSpans.forEach((span, index) => {
+      const charInSample = testText[index];
+      const charInTyped = typedText[index];
+      span.classList.remove('correct', 'incorrect', 'current');
+      if (index < totalCharacters) {
+        if (charInTyped === charInSample) { span.classList.add('correct'); currentCorrectCharacters++; }
+        else { span.classList.add('incorrect'); currentErrors++; }
+      }
+    });
+    if (totalCharacters < testText.length) sampleSpans[totalCharacters].classList.add('current');
+    errors = currentErrors; typedCharacters = totalCharacters; correctCharacters = currentCorrectCharacters;
+    errorsEl.textContent = errors;
+    const elapsedSeconds = parseInt(durationSelect.value) - Math.max(0, timeLeft);
+    const netWPM = (elapsedSeconds > 0) ? Math.round(((correctCharacters / 5) / (elapsedSeconds / 60))) : 0;
+    wpmEl.textContent = isFinite(netWPM) && netWPM > 0 ? netWPM : 0;
+    const accuracy = typedCharacters > 0 ? (correctCharacters / typedCharacters) * 100 : 100;
+    accuracyEl.textContent = `${accuracy.toFixed(2)}%`;
+
+    if (isTestRunning && typedText.length >= testText.length) {
+      const core = typedText.slice(0, testText.length);
+      const tail = typedText.slice(testText.length);
+      if (core === testText && tail.trim().length === 0) endTest();
+    }
+  }
+
+  startBtn.addEventListener('click', startTest);
+  resetBtn.addEventListener('click', initializeTest);
+  difficultySelect.addEventListener('change', initializeTest);
+  durationSelect.addEventListener('change', initializeTest);
+  typingInput.addEventListener('input', updateStats);
+  closeModal.addEventListener('click', hideModal);
+  resetModal.addEventListener('click', () => { hideModal(); initializeTest(); });
+
+  initializeTest();
+})();
+</script>
+</body>
+</html>
+
