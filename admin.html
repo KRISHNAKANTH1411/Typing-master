@@ -217,6 +217,10 @@
     <button id="clearLeaderboard">🗑️ Clear Leaderboard</button>
   </div>
 </div>
+<div id="adminControls" style="display:none; margin-top:15px;">
+  <button id="clearLeaderboard">🗑️ Clear Leaderboard</button>
+  <button id="adminLogout">🔒 Logout Admin</button>
+</div>
 
 <footer>Created by <strong>KRISHNA KANTH M</strong></footer>
 <button id="adminLogin">Admin</button>
@@ -519,6 +523,14 @@ document.getElementById("adminLogin").addEventListener("click", () => {
   adminModal.classList.add("show");   // show modal
   adminPassword.focus();
 });
+  // Logout admin
+document.getElementById("adminLogout").addEventListener("click", () => {
+  isAdmin = false;
+  document.getElementById("adminControls").style.display = "none";
+  loadLeaderboard();  // refresh to hide delete buttons
+  alert("✅ Admin mode deactivated!");
+});
+
 
 adminSubmit.addEventListener("click", () => {
   if (adminPassword.value === "1411Nazii") {
